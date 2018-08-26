@@ -202,6 +202,7 @@ void encoding(char *data,uint8_t a, uint32_t b, uint32_t c){
 	memcpy(&data[sizeof(uint8_t)],&b,sizeof(uint32_t));
 	memcpy(&data[sizeof(uint8_t)+sizeof(uint32_t)],&c,sizeof(uint32_t));
 }
+/*
 #define PORT 8888
 #define IP "127.0.0.1"
 #define BSIZE 128
@@ -228,4 +229,4 @@ int main(int argc, char *argv[]){
 		kuk_send_buf(test,buf,sizeof(uint32_t)*2+sizeof(uint8_t),sizeof(uint32_t)*2+sizeof(uint8_t));
 	}
 	kuk_sock_destroy(test);
-}
+}*/
