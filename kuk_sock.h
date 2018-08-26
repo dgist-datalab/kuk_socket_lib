@@ -39,6 +39,6 @@ int kuk_send_buf(kuk_sock *,char *data,int encoded_size,int special_size);
 int kuk_request(kuk_sock *,int);
 int kuk_send(kuk_sock*,char *,uint32_t);
 int kuk_recv(kuk_sock*,char *,uint32_t);
-
+int kuk_sock_destroy(kuk_sock*);
 void * kuk_decoder_exp(kuk_sock *, void*(*ad)(kuk_sock*));
 #endif

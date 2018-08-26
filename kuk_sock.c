@@ -46,7 +46,7 @@ int kuk_listen(kuk_sock* ks,int num){
 	return 1;
 }
 int kuk_accept(kuk_sock* ks){
-	int clnt_size=sizeof(ks->c_sin);
+	uint32_t clnt_size=sizeof(ks->c_sin);
 	if((ks->clnt=accept(ks->fd,(struct sockaddr*)&ks->c_sin,&clnt_size))==-1){
 		fprintf(stderr,"accept error!");
 		exit(1);
@@ -80,7 +80,8 @@ int kuk_recv(kuk_sock* ks, char *buf, uint32_t size){
 }
 int kuk_ack2clnt(kuk_sock *ks){
 	int32_t flag=0;
-	flag=kuk_send(ks,"a",strlen("a"));
+	char t='a';
+	flag=kuk_send(ks,&t,1);
 	if(flag==-1){
 		ks->disconnect_flag=1;
 		ks->data_lsize=ks->recv_len;
@@ -98,7 +99,8 @@ int kuk_service(kuk_sock* ks, char block){
 			ks->recv_len+=kuk_recv(ks,&ks->data[ks->recv_len],ks->data_size-ks->recv_len);
 			if(!block){
 				if(flag!=-1){
-					flag=kuk_send(ks,"a",strlen("a"));
+					char t='a';
+					flag=kuk_send(ks,&t,1);
 				}
 				else{
 					ks->disconnect_flag=1;
