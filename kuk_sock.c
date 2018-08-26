@@ -71,30 +71,41 @@ int kuk_connect(kuk_sock *ks,char *ip, uint32_t port){
 	return 1;
 }
 int kuk_send(kuk_sock* ks, char *buf, uint32_t size){
-	return write(ks->clnt,buf,size);
+	int res=write(ks->clnt,buf,size);
+	return res;
 }
 int kuk_recv(kuk_sock* ks, char *buf, uint32_t size){
-	return read(ks->clnt,buf,size);
+	int res=read(ks->clnt,buf,size);
+	return res;
 }
-int kuk_service(kuk_sock* ks){
+int kuk_ack2clnt(kuk_sock *ks){
+	int32_t flag=0;
+	flag=kuk_send(ks,"a",strlen("a"));
+	if(flag==-1){
+		ks->disconnect_flag=1;
+		ks->data_lsize=ks->recv_len;
+	}
+}
+int kuk_service(kuk_sock* ks, char block){
 	if(ks->decoder==NULL){
 		return 0;
 	}
 	if(ks->start_flag ||(ks->disconnect_flag==0 && ks->data_idx==ks->data_size)){
-		uint32_t len=0;
 		char flag=0;
+		ks->recv_len=0;
 		ks->start_flag=0;
-		while(len!=ks->data_size) {
-			len+=kuk_recv(ks,&ks->data[len],ks->data_size-len);
-			if(flag!=-1){
-				//check for alive
-				flag=kuk_send(ks,"a",strlen("a"));
+		while(ks->recv_len!=ks->data_size) {
+			ks->recv_len+=kuk_recv(ks,&ks->data[ks->recv_len],ks->data_size-ks->recv_len);
+			if(!block){
+				if(flag!=-1){
+					flag=kuk_send(ks,"a",strlen("a"));
+				}
+				else{
+					ks->disconnect_flag=1;
+					ks->data_lsize=ks->recv_len;
+				}
 			}
-			else{
-				ks->disconnect_flag=1;
-				ks->data_lsize=len;
-			}
-			if(ks->data_lsize!=0 && len==ks->data_lsize){
+			if(ks->data_lsize!=0){
 				break;
 			}
 		}
@@ -186,7 +197,6 @@ void *kuk_decoder_exp(kuk_sock *ks, void *(after_decode)(kuk_sock *)){
 	return (void*)parse;
 }
 
-/*
 void encoding(char *data,uint8_t a, uint32_t b, uint32_t c){
 	memcpy(&data[0],&a,sizeof(uint8_t));
 	memcpy(&data[sizeof(uint8_t)],&b,sizeof(uint32_t));
@@ -196,14 +206,14 @@ void encoding(char *data,uint8_t a, uint32_t b, uint32_t c){
 #define IP "127.0.0.1"
 #define BSIZE 128
 int main(int argc, char *argv[]){
-	kuk_sock *test=kuk_sock_init(110*(sizeof(uint8_t)+2*sizeof(uint32_t)),kuk_decoder_exp,NULL);
+	kuk_sock *test=kuk_sock_init(10*(sizeof(uint8_t)+2*sizeof(uint32_t)),kuk_decoder_exp,NULL);
 	char buf[BSIZE];
 	if(argv[1][0]=='s'){
 		kuk_open(test,IP,PORT);
 		kuk_bind(test);
 		kuk_listen(test,5);
 		kuk_accept(test);
-		while(kuk_service(test)){
+		while(kuk_service(test,0)){
 //		while(test->disconnect_flag==0){
 			printf("%d - %u - %u\n",*((uint8_t*)test->p_data[0]),*((uint32_t*)test->p_data[1]),*((uint32_t*)test->p_data[2]));
 		}
@@ -218,4 +228,4 @@ int main(int argc, char *argv[]){
 		kuk_send_buf(test,buf,sizeof(uint32_t)*2+sizeof(uint8_t),sizeof(uint32_t)*2+sizeof(uint8_t));
 	}
 	kuk_sock_destroy(test);
-}*/
+}

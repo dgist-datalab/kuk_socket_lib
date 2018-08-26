@@ -7,6 +7,10 @@ all: $(TARGET)
 
 .c.o:
 	$(CC) -c $< -o $@
+test: kuk_sock.c
+	$(CC) -o $@ kuk_sock.c
+	
 
 clean:
 	$(RM) *.o
+	$(RM) test
