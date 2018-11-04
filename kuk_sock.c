@@ -1,4 +1,6 @@
 #include "kuk_sock.h"
+#include<unistd.h>
+#include<fcntl.h>
 #include <signal.h>
 kuk_sock *kuk_sock_init(uint32_t b_size, void*(*decoder)(kuk_sock*,void*(*ad)(kuk_sock*)),void*(*ad)(kuk_sock*)){
 	kuk_sock *res=(kuk_sock*)malloc(sizeof(kuk_sock));
@@ -53,7 +55,7 @@ int kuk_accept(kuk_sock* ks){
 	}
 	return 1;
 }
-int kuk_connect(kuk_sock *ks,char *ip, uint32_t port){
+int kuk_connect(kuk_sock *ks,char *ip, uint32_t port,char nonblock){
 	memset(&ks->c_sin,0,sizeof(ks->c_sin));
 	ks->c_sin.sin_family=AF_INET;
 	ks->c_sin.sin_port=htons(port);
@@ -67,6 +69,11 @@ int kuk_connect(kuk_sock *ks,char *ip, uint32_t port){
 	if(connect(ks->clnt,(struct sockaddr*)&ks->c_sin,sizeof(ks->c_sin))){
 		fprintf(stderr,"connect error!\n");
 		exit(1);
+	}
+	if(nonblock){
+		int flag;
+		flag=fcntl(ks->clnt,F_GETFL,0);
+		fcntl(ks->clnt,F_SETFL,flag|O_NONBLOCK);
 	}
 	return 1;
 }
@@ -222,7 +229,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 	else{
-		kuk_connect(test,IP,PORT);
+		kuk_connect(test,IP,PORT,1);
 		for(int i=0; i<100; i++){
 			encoding(buf,1,i,4096);
 			kuk_send_buf(test,buf,sizeof(uint32_t)*2+sizeof(uint8_t),0);

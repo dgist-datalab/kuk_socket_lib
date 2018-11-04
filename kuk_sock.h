@@ -32,7 +32,7 @@ int kuk_open(kuk_sock*,char *, uint32_t);
 int kuk_bind(kuk_sock*);
 int kuk_listen(kuk_sock*,int);
 int kuk_accept(kuk_sock*);
-int kuk_connect(kuk_sock*,char *,uint32_t);
+int kuk_connect(kuk_sock*,char *,uint32_t,char);
 int kuk_service(kuk_sock *, char block);
 int kuk_ack2clnt(kuk_sock*);
 int kuk_send_buf(kuk_sock *,char *data,int encoded_size,int special_size);
